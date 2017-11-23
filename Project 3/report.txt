@@ -1,0 +1,335 @@
+class StudentWorld:  	//NO NEW VIRTUALS COZ NOTHING EXTENDS STUDENTWORLD
+
+	StudentWorld(std::string assetDir); //given
+	~StudentWorld(); //has to have its own destructor
+	virtual int init(); //given
+	virtual int move(); //given
+	virtual void cleanUp(); //given
+
+	int getCurrentTicks(); //other classes need to know
+
+	bool hasPebble(int x, int y) const;
+	//world knows where stuff are (has m_actors) 
+	//so natural to ask the world
+
+	void addFood(int x, int y, int amount); 
+	void addPheromone(int x, int y, int imageID);
+	//wanted the world to figure out if there was food/pheromone there already
+	void addAdultGrassHopper(int x, int y);
+	void addAnt(int x, int y, int colony);
+	//for all the adds, world again has all the pointers to
+	//all the actors, thus it is natural to have all (new) Actors
+	//be made in StudentWorld
+
+	void giveFoodTo(Ant* ant);
+	//wanted world to figure out the food amount where the ant is
+	//and transfer the <=400 food to the ant
+
+	Food* foodAt(int x, int y);
+	AntHill* anthillAt(int x, int y);
+	template<typename T>
+	void thingAt(int x, int y, T & t);
+	Pheromone* pheromoneAt(int x, int y, int imageID);
+	void pheromoneAt(int x, int y, int imageID, Pheromone*& p);
+	auto allThingsAt(int x, int y);
+	//world knows where stuff are at so natural to ask the world
+	//other Actors may need to know where stuff are
+	//like check whether for Ant is [i_am_]standing_on_food 
+
+	Compiler* getCompiler(int colony) const;
+	//ant needs to ask world for proper compiler* to use
+
+
+//end class StudentWorld
+
+
+
+
+
+///////////////////////////////
+////////////ACTORS/////////////
+///////////////////////////////
+
+//CONTSTRUCTORS ARE ALL PUBLIC AND HAVE TO BE 
+//BECAUSE WE ARE CONSTRUCTING THEM OUTSIDE THEIR CLASS
+
+
+/////////
+//Actor//
+/////////
+class Actor : public GraphObject {
+public:
+	Actor(int imageID, int startX, int startY, StudentWorld* world, int depth); 
+	bool alive(); //world's gotta know whether to delete, same functionality for all Actors, no need virtual
+	virtual void doSomething() = 0; //pure virtual since all Actors need to doSomething 
+									//(even if it's nothing) and all act differently
+	virtual void getPoisoned(); //implemented with blank so that Pebble won't have to
+								//default getPoisoned is nothing anyway
+								//Bug overrides this  so virtual (Bugs can indeed get hurt from poison)
+	virtual bool blocksAnt(); 	//default returns false, overrided by pebble
+	virtual bool isTrap(); //returns false, overrided by Trap
+	virtual bool isBug(); //returns false, overrided by Bug
+	virtual bool isFOod(); //returns false, overrided by Food
+	virtual bool isPheromone(int colony) { return false; } //overrided by Pheromone
+	virtual bool isAnt(int colony) { return false; } //overrided by Ant
+	virtual bool isAntHill(); //returns false, overrided by AntHill
+///////////////
+//inanimate///
+//////////////
+
+
+class Pebble : public Actor {
+public:
+	Pebble(int startX, int startY, StudentWorld* world);
+	void doSomething();  //implements doing nothing
+	void blocksAnt(); //returns true
+//no subclass, no need virtual
+
+
+//traps (water n poison)
+class Trap : public Actor {
+public:
+	Trap(int imageID, int startX, int startY, StudentWorld* world);
+	virtual void actOn(Actor* a) = 0;  //all Traps act but diff for water and poison
+	void doSomething(); //act[s]On all things in same coord (same pattern for all traps)
+	bool isTrap(); //returns true
+
+class WaterPool : public Trap {
+public:
+	WaterPool(int startX, int startY, StudentWorld* world); 
+	void actOn(Actor* a); //waterStun()s a
+class Poison : public Trap {
+public:
+	Poison(int startX, int startY, StudentWorld* world);
+	void actOn(Actor* a); // a gets poisoned
+//these two above have no subclasses, no need virtual
+
+
+/////////////////////
+//ENERGY HOLDERS!//
+/////////////////
+
+class EnergyHolder : public Actor {
+public: 
+	EnergyHolder(int imageID, int startX, int startY, StudentWorld* world, int depth, int startAmount);
+	virtual void gainEnergy(int amount);  //Pheromone has max energy so need virtual
+	virtual int loseEnergy(int amount);   //return how much energy actually lost (before hitting 0)
+										  //ant overrides loseEnergy to check if it was bitten
+	virtual void doSomething(); 	//loses 1 energy by default
+									//almost everything overrieds it but calls it too
+	int energy();	//student world needs to know for giveFood function; returns how much energy
+					//same functionality for all energy holders; no need virtual
+
+class Food : public EnergyHolder {
+public:
+	Food(int startX, int startY, StudentWorld* world, int startAmount = 6000);
+	virtual void doSomething();  //doesn't lose 1 energy per tick (does nothing)
+								 //does this count as duplicating code? (doing nothing)
+	bool isFood(); //returns true
+
+class Pheromone : public EnergyHolder {
+public:
+	Pheromone(int imageID, int startX, int startY, StudentWorld* world);
+	void gainEnergy(); //caps at 768
+	int colony();	//to know if Pheromones match other Pheromones or Ants
+					//world uses this so need public
+	bool isPheromone(int colony); //returns true if colony == m_colony
+	// no subclass no need virtual
+
+class AntHill : public EnergyHolder {
+public:
+	AntHill(int startX, int startY, StudentWorld* world, int colony, Compiler* compiler);
+	void doSomething();  //lose 1 hp, if dead return, otherwise
+						//if there's food eat it
+						//if there's enough energy, make an ant
+	int colony();		//ant needs to know if a colony is theirs
+	bool isAntHill(); //returns true, no need to check colony since there'll only be 1 AH per coord
+	//Anthill has no subclasses so no need virtual
+
+
+
+//////////
+//BUGS!//
+////////
+
+class Bug : public EnergyHolder {
+public:
+	Bug(int imageID, int startX, int startY, int hp, StudentWorld* world);
+
+	virtual void waterStun(); //to distinguish since AdultsGH's are immune to waterStun (AdultGH overrides waterStun())
+	virtual void doSomething();	//lose 1 energy, if dead return, otherwise
+								//doExtraStuff() if it's not stunned, otherwise decrement the stun counter
+								//doExtraStuff() is private pure virtual member function
+	virtual void getPoisoned();		//virtual to indicate that it can be further changed (by AdultGH)
+									//this one reduces energy (hp) by 150
+
+			//same for all bugs, no need virtual
+	void stun();   //stuns for 2 ticks
+	bool attemptMove(Direction dir);  //tries to move in dir, calls blockedFromMoving() if failed, returns successfulness 
+	void die();		//sets m_alive to false and adds 100 food to current coord
+	auto lastStunnedBy();			//returns pair<int,int> representing where it was last stunned by water 
+									//(resets to -1,-1 if it ever moves successfully)
+	void setLastStunnedBy(int x, int y);  //so water can stun a bug and setLastStunnedBy 
+										  //(to prevent water from stunning repeatedly)
+	bool isBug(); //returns true
+						
+
+
+class GrassHopper : public Bug {
+public:
+	GrassHopper(int imageID, int startX, int startY, int hp, StudentWorld* world);
+	void newDirection();	//randomly chooses between up right down left and set direction to that
+							//also same for adult and baby
+
+
+class BabyGrassHopper : public GrassHopper {
+public:
+	BabyGrassHopper(int startX, int startY, StudentWorld* world);
+
+class AdultGrassHopper : public GrassHopper {
+public:
+	AdultGrassHopper(int startX, int startY, StudentWorld* world);
+	void getPoisoned(); //empty since immune, no deeper subclass so no need virtual
+	void waterStun();  //empty since immune
+
+
+
+
+/////////////////////////////////////////
+///////		ANT	/////////////////
+/////////////////////////////////////////
+
+class Ant : public Bug {
+public:
+	Ant(int colony, int startX, int startY, StudentWorld* world);
+	 int pickupFood(int amount); //picks up amount of food up until max capacity reached
+	 							//and returns how much it actually picked up
+	bool isAnt(int colony)  //returns whether colony matches m_colony
+
+
+////////////////endOfActors///////////////
+
+
+
+
+
+
+2. All functionality implemented (I think)
+
+
+
+
+3. Assumptions:
+/**assumed not successfully biting or getting food or eating food still counts as externally affecting actions for ants
+since it's the AI writer's fault they falsely execute */
+^no longer an assumption
+assumed change dir is external change
+assumed 10 square radius is inclusive bound i.e. a jump of <1,10> or <3,9> is allowed
+that is, as long as sqrt(dx*dx + dy*dy) rounds to max of 10, its fine.
+
+I originally used a Map structure as I thought it might be faster than a 2D array of lists when there are few actors
+I think thats true, but I realise that Ants that drop a lot of pheromone or simply good ants that feed
+the anthills a lot will make a lot of offspring and slow my program down. 
+The 2D array method was probably better after all. 
+
+
+4. Description of testing:
+It ran, and looks the same as the sample program (yatta)!
+
+
+For all testing, MS_PER_FRAME was set to 30 so I could observe clearly and pause quick enough
+to check certain behavior frame by frame e.g. when an ant get close to food I pause and see
+what happens and what couts. 
+
+class StudentWorld:  {
+	Tested with 0, 1, 2, 3, 4 colonies (all compiled and worked)
+	Functionality of program depends heavily on the 'add' functions here 
+	and the 'at' functions
+	In particular, 'thingAt' served many other functions and I wasnt sure if the 
+	<template>ing would work as intended. So, I added a cout at foodAt (which used thingAt)
+	that printed its coordinates (if food wasnt nullptr) and I confirmed that only coords where there was food
+	would ever be printed (it was so). Other functions were similarly tested with cout.
+
+	Checked that the winner is properly assigned by running the game several times
+	with USCAnt.bug and USCAnt2.bug that I wrote and observing 
+}
+
+class Actor : {
+	Made sure die() worked by cout-ing getID()   and getX() and getY()
+	whenever die() was called  to see what was dying where
+	in a map with few actors. getID() is only used here for debugging
+	not used in final product
+}
+class Pebble : {
+	Made sure bugs couldnt go on pebbles. Spawned GHs near pebbles, 
+	(they couldnt move on the pebble), checked that the map 
+	displays pebbles at the right place with the right image
+}
+
+class Trap : {
+	Useful for identifying danger for the ant. Tested using ants i_smell_danger
+	cout-ed "trap" if it smelled a trap (used Trap::isTrap() ).
+}
+class WaterPool : {
+	Saw if ants and babygrasshoppers were stunned for an extra two ticks 
+	(using the f button and advancing the simulation frame by frame)
+}
+class Poison : {
+	Checked if bugs that hit poison died faster (in a map with no food)
+	and that the map displayed poison at right place w/ right image
+}
+
+class EnergyHolder : {
+	couted bugs and anthills energy to check how they ticked down 
+	and whether they died properly
+}
+class Food : {
+	Checked foods energy with cout to make sure they only deplete when eaten. 
+	Checked that they start with 6000 m_amount if startAmount is unspecified.
+}
+class Pheromone : {
+	Checked that they never go beyond 768, 
+	and that they tick down every tick (with cout in addPheromone).
+	Checked by making ants produce pheromone about every other tick 
+	that the ant produces its own colonys pheromone
+}
+class AntHill : {
+	Checked that they will produce extra ants by putting food near anthills 
+	and tracking their energy()
+	Checked that they produce the right ants by checking the ants with
+	the supposed .tga files 
+	Checked that they died properly by starving them in a map with no food 
+}
+
+class Bug : {
+	Through couting in bugs blockedFromMoving() and stun() and getPoisoned() and energy()
+	and observing the simulation frame by frame
+	Checked if pebbles properly blocked bug movement
+	checked if water and poison properly affect general bug (other than AdultGH)
+	(Bug keeps track of which  water last stunned it)
+}
+class GrassHopper : {
+	Observed simulation of 3 GrassHoppers in the original field frame by frame
+	to observe their movement (pick random direction 
+		and then go in that dir for some time, and then switch upon hitting pebble or after run ends)
+	couted m_distanceLeft in their doSomething to check
+
+}
+class BabyGrassHopper : {
+	couted their energy() to make sure they moulted at the right time 
+	(by also couting "EVOLVE!" right before adding an AdultGrassHopper)
+}
+class AdultGrassHopper : {
+	couted how far a grasshopper jumped in <dx,dy> e.g. <10,1> means +10 horizontal +1 vertical
+	using 1 grasshopper in a field with nothing but food (and pebbles)
+	tested its bite by couting energy()s of things before and after loseEnergy() is called
+}
+class Ant : {
+	checked that ant smelled pheromone properly (by couting pheromone! and its coords 
+		every time they smelt pheromone) (and adding if_i_smell_pheromone_in_front_of_me to USCAnt.bug)
+	had cout for all commands and tested with different .bug files to test the order of execution 
+	also observed in general that the ants seem to follow what I write in .bug 
+	tested private fucntions one by one too (like couting "DANGER!" and that coord 
+		when it senses danger (I pause and check that coord))
+
+}

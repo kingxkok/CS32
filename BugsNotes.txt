@@ -1,0 +1,16 @@
+MAP <coord, list of pointers to actors on coord>
+mymap.count(c)>0 //check if key c has a value
+keep track of winning colony?
+.alive() for actors
+ant has m_ic member (instruction counter)
+
+
+GraphObject(int imageID, int startX, int startY, Direction startDirection = none, int depth = 0);
+ void setVisible(bool shouldIDisplay);
+ void getX() const;
+ void getY() const;
+ void moveTo(int x, int y);
+ Direction getDirection() const; // Directions: none, up, down, left, right
+ void setDirection(Direction d); // Directions: none, up, down, left, right
+
+GraphObject(int imageID, int startX, int startY, Direction startDirection, int depth)

@@ -1,0 +1,89 @@
+//2
+"value > p->m_value" exists in two-argument insert(); the binary '>' operator is not defined for class Complex.
+
+//3b
+If there were only 1 parameter,
+each call in depth (higher up on the stack) would not be able to know the path it had 
+traversed and thus could only ever print its own name (and maybe a "/")
+
+//4a
+const int N = some value;  
+	bool isFriend[N][N];		
+	...	
+	int numMutualFriends[N][N];
+	for (int i = 0; i < N; i++)  //O(N)
+	{
+	    numMutualFriends[i][i] = -1;  // the concept of mutual friend
+				          // makes no sense in this case
+	    for (int j = 0; j < N; j++) //O(N) within
+	    {
+	        if (i == j)
+	            continue;
+	        numMutualFriends[i][j] = 0;
+	        for (int k = 0; k < N; k++)	//Another O(N) within 
+	        {
+	            if (k == i  ||  k == j)
+	                continue;
+		    if (isFriend[i][k]  &&  isFriend[k][j])
+	        	numMutualFriends[i][j]++;
+	        }
+	    }
+	}
+
+	O(N)*O(N)*O(N) == O(N^3)
+
+
+//4b
+	still O(N^3) since O(N^3)/2 or indeed O(N^3)/K, where K is constant, is still O(N^3)
+	changing loop limit from N to i makes the average ~N/2 but still, that is linear with
+	respect to N. O(N)*O(N/2)*O(N) is still O(N^3).
+
+
+//5a
+void interleave(const Sequence& seq1, const Sequence& seq2, Sequence& result)
+{
+    Sequence res;
+
+    int n1 = seq1.size();
+    int n2 = seq2.size();
+    int nmin = (n1 < n2 ? n1 : n2);
+    int resultPos = 0;
+    for (int k = 0; k < nmin; k++) //O(N)
+    {
+        ItemType v; 
+        seq1.get(k, v);	//O(N)
+        res.insert(resultPos, v); //O(N) from nodeAtPos usually, but is actually O(1) coz it always 
+        						//inserts at the end
+        resultPos++;
+        seq2.get(k, v);
+        res.insert(resultPos, v);
+        resultPos++;
+    } //this for loop is O(N^2)
+
+    const Sequence& s = (n1 > nmin ? seq1 : seq2);
+    int n = (n1 > nmin ? n1 : n2);		//if both same length then for doesn't run but
+    for (int k = nmin ; k < n; k++)		//even if it did it'd be O(N^2) max
+    {
+        ItemType v;
+        s.get(k, v);
+        res.insert(resultPos, v);
+        resultPos++;
+    }
+
+    result.swap(res);	//constant time
+}
+
+O(N^2): the first for loop is O(N) with a body that is O(N). The body has 
+get() which is O(N) as it uses nodeAtPos which visits on average N/4 Items but that is still O(N).
+O(N) within O(N) == O(N)*O(N) == O(N^2). QED.
+
+
+
+//5b
+O(N), better than part a. O(N) < O(N^2) 
+It only has to traverse the sequences a constant amount of times 
+(in fact, just once for both sequences), thus O(N). 
+The function called int the loop (insertBefore) is constant time,
+Thus O(N)*O(1) == O(N) is the complexity of that loop.
+All other things called are also either O(1) or O(N)  like the forloop to add remaining items.
+(its body is also O(1)). Swap is again also O(1).

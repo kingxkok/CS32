@@ -1,0 +1,63 @@
+Problem 2.
+
+		"XXXXXXXXXX",
+		"XE.......X",
+		"XX.X.XXXXX",
+		"X..X.X...X",
+		"X..XC..X.X",
+		"XXXXBXXX.X",
+		"X.X2S3AXXX",
+		"X..XX4XX9X",
+		"X...X5678X",
+		"XXXXXXXXXX"
+(r,c) for stack
+01.(6,4)
+02.(6,3)
+03.(6,5)
+04.(7,5)
+05.(8,5)
+06.(8,6)
+07.(8,7)
+08.(8,8)
+09.(7,8)
+10.(6,6)
+11.(5,4)
+12.(4,4)
+
+
+
+
+
+Problem 4.
+ 		"XXXXXXXXXX",
+                "XE.......X",
+                "XX.XBXXXXX",
+                "X..X8X...X",
+                "X..X59CX.X",
+                "XXXX2XXX.X",
+                "X.X4S36XXX",
+                "X..XX7XX.X",
+                "X...XA...X",
+                "XXXXXXXXXX"
+(r,c) for queue
+01.(6,4)
+02.(5,4)
+03.(6,5)
+04.(6,3)
+05.(4,4)
+06.(6,6)
+07.(7,5)
+08.(3,4)
+09.(4,5)
+10.(8,5)
+11.(2,4)
+12.(4,6)
+
+
+The stack's first in last out structure makes it a depth-first search; it keeps going with that move as a given until it exhausts the paths that move can lead to. The queue's first in first out structure makes it scan a move's possible immeadiate next moves, and each of those move's immeadiate next moves, sprawling through the maze.
+
+The stack version analyzes west->south->east->north (first in is analyzed last)
+while the queue version analyzes north->east->south->west
+(first in is analyzed first)
+
+

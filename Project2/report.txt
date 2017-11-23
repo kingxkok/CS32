@@ -1,0 +1,205 @@
+LinkedList implementation:
+	Doubly-linked, circular, with dummy node 'head'
+	List nodes have an m_next pointer to next Node
+  		and an m_prev pointer to previous Node
+		and m_data, the data of interest
+	Empty sequence would have a head->[m_data (uninitialised or default initialised garbage value),
+					   m_next (points to same node as head),
+					   m_prev (also == head)]
+	Non-empty sequence would have head->[dummy node, which has  garbage m_data,
+								m_next->[first interesting node],
+							 	m_prev ->[last interesting node], ]
+						first's m_data is interesting (like maybe 42 or "Smallberg")
+						first's m_next -> second interesting node
+						first's m_prev -> dummy node
+							and so on.
+
+	
+
+
+
+Pseudocode:
+	Sequence::remove:
+		{
+			repeatedly:
+				find() the value's pos and erase that pos
+				increment items removed
+			...until find() cannot find an item that equals value
+			
+			return no. items removed
+		}
+	
+	interleave:
+		{
+			create temporary sequence (temp)
+			
+			repeatedly, until both sequences are exhausted (track index):
+				if(seq1 is not exhausted) insert its item at index to temp
+				if(seq2 is not exhausted) insert its item at index to temp
+			
+			set result to temp	
+			
+		}
+	Note: cannot simply use 1-parameter insert with no pos because it will fill the list in ascending order
+
+	
+	I felt my 'simpler' functions like insert were less trivial than the higher level functions, so here:
+	Sequence::insert(pos, value):
+		{
+			start at index 0 (first meaningful item) and keep following next pointers
+			until the pos is reached. 
+				If the head is reached strictly before pos is reached return false
+			
+			if pos is reached
+				create a new node
+				set it's m_next to current item at pos (call it p)
+				set it's m_prev to p's m_prev
+				update p and p's original m_prev
+				and return true
+			
+		}
+	Note: with get() and set() and find() and erase(), the pos has to be reached strictly before the head 
+		since one should not get or set or find or erase a non-interesting item
+	
+
+
+
+
+TESTS:
+
+
+
+Tests for when ItemType is int or unsigned long or long and the like
+void testLong() {
+	Sequence s;
+	assert(s.insert(0, 56)); //insert works
+	assert(s.insert(0, 69));  //yes
+	assert(s.size() == 2);  //there are indeed TWO items in the sequence by the name of s.
+	ItemType x = 42;
+	assert(s.get(0, x) && x == 69);	//amazing! get works!
+	assert(s.get(1, x) && x == 56);  //two for two!
+	assert(s.set(1, 99) && s.get(1, x) && x == 99);  //set works as well
+	assert(!s.set(2, 903));		//can't  set where there's nothing though
+	Sequence s2 = s;  //ASSIGNMENT!?
+	assert(s2.get(0, x) && x == 69); //...
+	assert(s2.get(1, x) && x == 99); //works!
+	assert(s2.insert(0, 1562));  //what if I change s2?
+	assert(s2.get(0, x) && x == 1562); //s2 changes
+	assert(s2.get(1, x) && x == 69);  //s2 changes
+	assert(s2.get(2, x) && x == 99);  //s2... changes!
+	assert(s.get(0, x) && x == 69); //s remains unchanged (s2 is a proper copy!)
+	assert(s.get(1, x) && x == 99);  //sugoi desune
+	assert(!s.get(2, x));  //sadly (happily?) s still has nothing at index 2
+	assert(s2.insert(732) == 0 && s2.get(0, x) && x == 732); //732 is added at beginning coz 732<=1562
+	assert(s2.insert(732) == 0 && s2.get(0, x) && x == 732); //732 is added at beginning coz 732<=732
+	assert(s2.remove(732) == 2); //GET OUT 732 & 732 (remove works)
+	assert(s2.remove(732) == 0); // removing nothing
+	assert(s2.insert(4200) == 3 && s2.get(3, x) && x == 4200); //4200 is added at end coz 4200> a_lot_of_things
+
+
+	 //non-mem funcs
+	assert(subsequence(s2, s) == 1); //s2 is just s with 1562 in front and 4200 appended
+	assert(subsequence(s, s2) == -1);   //but s2 is not a subseq of s!
+	assert(subsequence(s, s) == 0); //s contains the sequence s represents
+	assert(s.remove(69) == 1 && s.remove(99) == 1); //emptying s
+	assert(!s.get(0, x) && x == 4200); //x remains unchanged
+	assert(subsequence(s, s) == -1); //s is empty so returns -1
+
+	s.insert(619); //adding to empty s
+	s.insert(911);
+	assert(s.get(0, x) && x == 619); //showing you what s has
+	assert(s.get(1, x) && x == 911);
+
+	assert(s2.get(0, x) && x == 1562);  //showing what s2 has
+	assert(s2.get(1, x) && x == 69);
+	assert(s2.get(2, x) && x == 99);
+	assert(s2.get(3, x) && x == 4200);
+
+	Sequence s3;
+	interleave(s, s2, s3);		//interleave works!
+	assert(s3.get(0, x) && x == 619);
+	assert(s3.get(1, x) && x == 1562);
+	assert(s3.get(2, x) && x == 911);
+	assert(s3.get(3, x) && x == 69);
+	assert(s3.get(4, x) && x == 99);
+	assert(s3.get(5, x) && x == 4200);
+
+	interleave(s, s2, s);		//aliasing is no problem
+	assert(s.get(0, x) && x == 619);
+	assert(s.get(1, x) && x == 1562);
+	assert(s.get(2, x) && x == 911);
+	assert(s.get(3, x) && x == 69);
+	assert(s.get(4, x) && x == 99);
+	assert(s.get(5, x) && x == 4200);
+
+
+}
+
+
+
+
+Tests for when ItemType is string
+void test()
+{
+	Sequence s;
+	assert(s.insert(0, "lavashi")); //insert works
+	assert(s.insert(0, "tortilla"));  //yes
+	assert(s.size() == 2);  //there are indeed TWO items in the sequence by the name of s.
+	ItemType x = "injera";
+	assert(s.get(0, x) && x == "tortilla");	//amazing! get works!
+	assert(s.get(1, x) && x == "lavashi");  //two for two!
+	assert(s.set(1, "lavash"));  //set as well
+	assert(s.get(1, x) && x == "lavash");  //kanpeki desu (tabun)!
+	assert(!s.set(2, "lol"));		//can't  set where there's nothing though
+	Sequence s2 = s;  //ASSIGNMENT!?
+	assert(s2.get(0, x) && x == "tortilla"); //works
+	assert(s2.insert(0, "lul"));  //what if I change s2?
+	assert(s2.get(0, x) && x == "lul"); //s2 changes
+	assert(s2.get(1, x) && x == "tortilla");  //s2 changes
+	assert(s2.get(2, x) && x == "lavash");  //s2... changes!
+	assert(s.get(0, x) && x == "tortilla"); //s remains unchanged
+	assert(s.get(1, x) && x == "lavash");  //sugoi desune
+	assert(!s.get(2, x));  //sadly (happily?) s still has nothing at index 2
+	assert(s2.insert("AH") == 0 && s2.get(0, x) && x == "AH"); //AH is added at beginning coz AH<=the first item
+	assert(s2.insert("AH") == 0 && s2.get(0, x) && x == "AH"); //AH is added at beginning coz AH<=the first item
+	assert(s2.remove("AH") == 2); //GET OUT AH & AH
+	assert(s2.insert("xd") == 3 && s2.get(3, x) && x == "xd"); //xd is added at end coz x> a_lot_of_things
+	
+
+	//non-mem funcs
+	assert(subsequence(s2, s) == 1); //lul, tort, lav, xd  is supersequence of  tort, lav  starting at tort (index == 1)
+	assert(subsequence(s, s2) == -1);
+	assert(subsequence(s, s) == 0);
+	assert(s.remove("tortilla")==1 && s.remove("lavash")==1);
+	assert(!s.get(0, x) && x == "xd"); //x remains unchanged
+	assert(subsequence(s, s) == -1);
+
+	s.insert("a"); //adding to empty s
+	s.insert("b");
+
+	assert(s.get(0, x) && x == "a"); //showing you what s has
+	assert(s.get(1, x) && x == "b");
+
+	assert(s2.get(0, x) && x == "lul");  //showing what s2 has
+	assert(s2.get(1, x) && x == "tortilla");
+	assert(s2.get(2, x) && x == "lavash");
+	assert(s2.get(3, x) && x == "xd");
+
+	Sequence s3;
+	interleave(s, s2, s3);		//interleave works!
+	assert(s3.get(0, x) && x == "a");
+	assert(s3.get(1, x) && x == "lul");
+	assert(s3.get(2, x) && x == "b");
+	assert(s3.get(3, x) && x == "tortilla");
+	assert(s3.get(4, x) && x == "lavash");
+	assert(s3.get(5, x) && x == "xd");
+
+	interleave(s, s2, s);		//aliasing is no problem
+	assert(s.get(0, x) && x == "a");	
+	assert(s.get(1, x) && x == "lul");
+	assert(s.get(2, x) && x == "b");
+	assert(s.get(3, x) && x == "tortilla");
+	assert(s.get(4, x) && x == "lavash");
+	assert(s.get(5, x) && x == "xd");
+
+} 

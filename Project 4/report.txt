@@ -1,0 +1,19 @@
+MyMap::
+associate() is O(log(N)) where N is the number of Nodes 
+find() is also O(log(N)) where N is the number of Nodes
+
+AttractionMapper::
+init() is O(S + A*L) where S is the number of segments 
+				and A is the number of attractions 
+				and L is the average length of attraction.name
+getGeoCoord() is O(L + log(A)) where L is the average length of the attraction name 
+								and A is the number of attractions
+
+SegmentMapper::
+init() is O((N+A)*log(N+A)) where N is the no. of segments and A is no. of attractions
+getSegments() is O(log(N+A)), same N and A
+
+Navigator::
+navigate() is O((N+A)*log(N+A)), 
+where N+A is the number of segments and attractions I analyze
+(usually a lot less than the total in the mapdata)
