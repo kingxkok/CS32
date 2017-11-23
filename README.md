@@ -29,22 +29,22 @@ The NachenSmall Maps & Navigation Corporation, owner of the popular turn-by-turn
 
 So, in your last project for CS32, your goal is to build a simple navigation system that loads and indexes a bunch of Open Street Map geospatial data (which contains latitude and longitude data for thousands of streets and attractions) and then build a turn-by-turn navigation system on top of this data.  Your completed Project 3 solution should be able to deliver optimal directions like the following, which detail how to get from 1031 Broxton Ave. (in Westwood) to The Maltz Park in (Beverly Hills): 
 
-  You are starting at: 1031 Broxton Avenue 
-  Proceed 0.09 miles southeast on Broxton Avenue 
-  Take a left turn on Kinross Avenue 
-  Proceed 0.07 miles east on Kinross Avenue 
-  Take a right turn on Glendon Avenue 
-  Proceed 0.08 miles southeast on Glendon Avenue 
-  Take a left turn on Lindbrook Drive 
-  Proceed 0.93 miles east on Lindbrook Drive 
-  Take a right turn on Holmby Avenue 
-  Proceed 0.08 miles southeast on Holmby Avenue 
-  Take a left turn on Wilshire Boulevard 
-  Proceed 0.92 miles east on Wilshire Boulevard 
-  Take a left turn on Whittier Drive 
-  Proceed 0.74 miles north on Whittier Drive 
-  You have reached your destination: The Maltz Park 
-  Total travel distance: 2.9 miles 
+    You are starting at: 1031 Broxton Avenue 
+    Proceed 0.09 miles southeast on Broxton Avenue 
+    Take a left turn on Kinross Avenue 
+    Proceed 0.07 miles east on Kinross Avenue 
+    Take a right turn on Glendon Avenue 
+    Proceed 0.08 miles southeast on Glendon Avenue 
+    Take a left turn on Lindbrook Drive 
+    Proceed 0.93 miles east on Lindbrook Drive 
+    Take a right turn on Holmby Avenue 
+    Proceed 0.08 miles southeast on Holmby Avenue 
+    Take a left turn on Wilshire Boulevard 
+    Proceed 0.92 miles east on Wilshire Boulevard 
+    Take a left turn on Whittier Drive 
+    Proceed 0.74 miles north on Whittier Drive 
+    You have reached your destination: The Maltz Park 
+    Total travel distance: 2.9 miles 
  
 If you’re able to prove to NachenSmall’s reclusive and bizarre CEO, Carey Nachenberg, that you have the programming skills to build a simple navigation engine, he’ll hire you to build the full navigation website, and you’ll be rich and famous.
 
