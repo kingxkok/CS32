@@ -7,7 +7,7 @@ Take inspiration if you want.
 
 Project 3 and 4 are interesting. Please refer to their respective specification PDFs.
 
-Project 3: Bugs
+### Project 3: Bugs
 
 Interprets code that dictates ant behavior, and runs a simulation.
 
@@ -19,7 +19,7 @@ In Project #3, you’re going to build a graphical ant simulation. In your simul
 
 Each simulated ant is controlled by its own unique ant program, which the contest entrants can write in a simple language called “Bugs!” that we’ve invented. Your Project #3 program will load one or more of these ant programs (written by the high-school students during the competition), and then use these Bugs programs to run the simulation. The high-school students can watch as their ants try to achieve dominance by growing the biggest colony of ants in the simulation. The ant program that generates the largest number of total ants across the simulation’s twothousand time units (aka ticks) wins. 
 
-Project 4: Bruin-Nav
+### Project 4: Bruin-Nav
 
 Turn-by-turn navigates using the A-star algorithm
 
